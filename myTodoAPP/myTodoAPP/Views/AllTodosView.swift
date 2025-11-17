@@ -10,6 +10,7 @@ import UniformTypeIdentifiers
 
 struct AllTodosView: View {
     @ObservedObject var todoStore: TodoStore
+    @ObservedObject var timeSettingsStore: TimeSettingsStore
     @Binding var todoFilterType: TodoFilterType
     @Binding var allTodosExpansionState: AllTodosExpansionState
     @Binding var currentTimeCategory: TimeCategory
@@ -91,7 +92,7 @@ struct AllTodosView: View {
                         if todoFilterType == .timeCategory {
                             // 시간대별 보기
                             ForEach(TimeCategory.allCases + [nil], id: \.self) { category in
-                                let todos = MainViewHelper.getTodosForCategory(category, from: todoStore)
+                                let todos = MainViewHelper.getTodosForCategory(category, from: todoStore, timeSettings: timeSettingsStore.settings)
                                 if !todos.isEmpty {
                                     VStack(alignment: .leading, spacing: 8) {
                                         HStack {
@@ -136,7 +137,8 @@ struct AllTodosView: View {
                             // 타입별 보기
                             let filteredTodos = MainViewHelper.getTodosByType(
                                 todoFilterType == .mustDo ? .mustDo : .wantToDo,
-                                from: todoStore
+                                from: todoStore,
+                                timeSettings: timeSettingsStore.settings
                             )
                             let backgroundColor = todoFilterType == .mustDo ? Color(white: 0.3).opacity(0.1) : Color(white: 0.6).opacity(0.1)
                             
@@ -182,11 +184,11 @@ struct AllTodosView: View {
     private func getFilteredTodosCount() -> Int {
         switch todoFilterType {
         case .timeCategory:
-            return MainViewHelper.getTodayTodos(from: todoStore).count
+            return MainViewHelper.getTodayTodos(from: todoStore, timeSettings: timeSettingsStore.settings).count
         case .mustDo:
-            return MainViewHelper.getTodosByType(.mustDo, from: todoStore).count
+            return MainViewHelper.getTodosByType(.mustDo, from: todoStore, timeSettings: timeSettingsStore.settings).count
         case .wantToDo:
-            return MainViewHelper.getTodosByType(.wantToDo, from: todoStore).count
+            return MainViewHelper.getTodosByType(.wantToDo, from: todoStore, timeSettings: timeSettingsStore.settings).count
         }
     }
 }

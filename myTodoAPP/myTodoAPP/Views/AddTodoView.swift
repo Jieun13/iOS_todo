@@ -11,6 +11,8 @@ struct AddTodoView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var todoStore: TodoStore
     let initialTimeCategory: TimeCategory?
+    @StateObject private var calendarSyncService = CalendarSyncService()
+    @StateObject private var timeSettingsStore = TimeSettingsStore()
     
     @State private var title: String = ""
     @State private var memo: String = ""
@@ -69,14 +71,62 @@ struct AddTodoView: View {
     }
     
     private func saveTodo() {
-        let newTodo = TodoItem(
+        // 현재 시간을 가져와서 분을 올림 처리
+        let now = Date()
+        let roundedDate = roundMinutesUp(now)
+        
+        var newTodo = TodoItem(
             title: title,
             memo: memo.isEmpty ? nil : memo,
             type: selectedType,
-            timeCategory: selectedTimeCategory
+            timeCategory: selectedTimeCategory,
+            createdAt: roundedDate
         )
+        
+        // 미리알림 생성
+        if calendarSyncService.isAuthorized {
+            if let reminderIdentifier = calendarSyncService.createReminder(for: newTodo, timeSettings: timeSettingsStore.settings) {
+                newTodo.reminderIdentifier = reminderIdentifier
+            }
+        }
+        
         todoStore.addTodo(newTodo)
         dismiss()
+    }
+    
+    // 분을 10분 단위로 올림 처리 (44분 → 50분, 45분 → 50분)
+    private func roundMinutesUp(_ date: Date) -> Date {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: date)
+        
+        guard let hour = components.hour,
+              let minute = components.minute else {
+            return date
+        }
+        
+        // 분을 10분 단위로 올림
+        let roundedMinute = ((minute + 9) / 10) * 10
+        
+        // 60분이 되면 시간을 올리고 분을 0으로
+        let finalHour: Int
+        let finalMinute: Int
+        if roundedMinute >= 60 {
+            finalHour = hour + 1
+            finalMinute = 0
+        } else {
+            finalHour = hour
+            finalMinute = roundedMinute
+        }
+        
+        var newComponents = DateComponents()
+        newComponents.year = components.year
+        newComponents.month = components.month
+        newComponents.day = components.day
+        newComponents.hour = finalHour
+        newComponents.minute = finalMinute
+        newComponents.second = 0
+        
+        return calendar.date(from: newComponents) ?? date
     }
 }
 

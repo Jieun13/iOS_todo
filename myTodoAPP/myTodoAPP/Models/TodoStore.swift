@@ -112,8 +112,23 @@ class TodoStore: ObservableObject {
                 return todo1.type == .mustDo
             }
             
-            // 3. 최근 추가한 것이 아래로 (createdAt이 큰 것이 아래)
-            return todo1.createdAt > todo2.createdAt
+            // 3. 캘린더/미리알림에서 가져온 항목은 시간 순으로 정렬
+            let hasTime1 = todo1.reminderIdentifier != nil || todo1.calendarEventIdentifier != nil
+            let hasTime2 = todo2.reminderIdentifier != nil || todo2.calendarEventIdentifier != nil
+            
+            if hasTime1 && hasTime2 {
+                // 둘 다 시간 정보가 있으면 시간 순으로 정렬
+                return todo1.createdAt < todo2.createdAt
+            } else if hasTime1 {
+                // todo1만 시간 정보가 있으면 위로
+                return true
+            } else if hasTime2 {
+                // todo2만 시간 정보가 있으면 위로
+                return false
+            } else {
+                // 둘 다 시간 정보가 없으면 최근 추가한 것이 아래로
+                return todo1.createdAt > todo2.createdAt
+            }
         }
     }
     
@@ -145,46 +160,77 @@ class TodoStore: ObservableObject {
             // 하위 호환성: 기존 데이터에 status가 없으면 isCompleted로 변환
             todos = decoded
         }
-        // 로드 후 전날 할일 정리
-        cleanupOldTodos()
     }
     
-    /// 매일 새벽 5시 기준으로 전날 할일을 정리합니다.
-    /// 완료된 할일은 삭제하고, 미완료된 할일은 "해야 할 일" + "시간대 미지정"으로 변경합니다.
-    func cleanupOldTodos() {
+    /// 아침 시작 시각 기준으로 할일을 정리합니다.
+    /// 다음날 아침 시작 시각이 지났으면 완료된 할일은 삭제하고, 미완료된 할일은 다음날 아침 시간대로 미룹니다.
+    func cleanupOldTodos(timeSettings: TimeSettings) {
         let calendar = Calendar.current
         let now = Date()
+        let todayStart = calendar.startOfDay(for: now)
         
-        // 오늘 새벽 5시 계산
-        let today5AM = calendar.date(bySettingHour: 5, minute: 0, second: 0, of: now) ?? now
+        // 설정된 아침 시작 시간 계산
+        let morningStartComponents = calendar.dateComponents([.hour, .minute], from: timeSettings.morningStart)
+        guard let morningStartHour = morningStartComponents.hour,
+              let morningStartMinute = morningStartComponents.minute else {
+            return
+        }
         
-        // 기준 날짜: 현재 시간이 오늘 새벽 5시 이전이면 어제, 이후면 오늘
-        let referenceDate = now < today5AM ? calendar.date(byAdding: .day, value: -1, to: now) ?? now : now
-        let reference5AM = calendar.date(bySettingHour: 5, minute: 0, second: 0, of: referenceDate) ?? referenceDate
+        // 오늘 아침 시작 시각
+        let todayMorningStart = calendar.date(bySettingHour: morningStartHour,
+                                             minute: morningStartMinute,
+                                             second: 0,
+                                             of: todayStart) ?? todayStart
+        
+        // 내일 아침 시작 시각
+        let tomorrowMorningStart = calendar.date(byAdding: .day, value: 1, to: todayMorningStart) ?? todayMorningStart
+        
+        // 현재 시간이 내일 아침 시작 시각을 지났는지 확인
+        guard now >= tomorrowMorningStart else {
+            // 아직 내일 아침 시작 시각이 지나지 않았으면 정리할 필요 없음
+            return
+        }
+        
+        // 내일 아침 시작 시각이 지났으므로 정리 시작
+        // 다음날 아침 시작 시각 계산
+        let dayAfterTomorrowMorningStart = calendar.date(byAdding: .day, value: 1, to: tomorrowMorningStart) ?? tomorrowMorningStart
         
         var hasChanges = false
         
-        // 전날 할일 필터링 (createdAt이 reference5AM 이전인 것들)
-        let oldTodos = todos.filter { todo in
-            todo.createdAt < reference5AM
+        // 오늘 범위(오늘 아침 시작 ~ 내일 아침 시작) 이전의 할 일 필터링 (정리 대상)
+        let todosToProcess = todos.filter { todo in
+            todo.createdAt < tomorrowMorningStart
         }
         
-        for oldTodo in oldTodos {
-            if oldTodo.status == .completed {
+        for todo in todosToProcess {
+            if todo.status == .completed {
                 // 완료된 할일은 삭제
-                todos.removeAll { $0.id == oldTodo.id }
+                todos.removeAll { $0.id == todo.id }
                 hasChanges = true
             } else {
-                // 미완료된 할일은 "해야 할 일" + "시간대 미지정"으로 변경하고 오늘 날짜로 업데이트
-                if let index = todos.firstIndex(where: { $0.id == oldTodo.id }) {
+                // 미완료된 할일은 다음날 아침 시간대로 미루기
+                if let index = todos.firstIndex(where: { $0.id == todo.id }) {
                     var updatedTodo = todos[index]
                     updatedTodo.type = .mustDo
-                    updatedTodo.timeCategory = nil
-                    updatedTodo.createdAt = now // 오늘 날짜로 업데이트
+                    updatedTodo.timeCategory = .morning
+                    updatedTodo.createdAt = dayAfterTomorrowMorningStart
                     todos[index] = updatedTodo
                     hasChanges = true
                 }
             }
+        }
+        
+        // 현재 시간 범위 밖의 동기화된 항목 제거 (캘린더/미리알림에서 가져온 것)
+        // 현재 범위: 내일 아침 시작 ~ 다음날 아침 시작
+        let syncedTodosOutsideRange = todos.filter { todo in
+            let isSynced = todo.calendarEventIdentifier != nil || todo.reminderIdentifier != nil
+            let isInRange = todo.createdAt >= tomorrowMorningStart && todo.createdAt < dayAfterTomorrowMorningStart
+            return isSynced && !isInRange
+        }
+        
+        for todo in syncedTodosOutsideRange {
+            todos.removeAll { $0.id == todo.id }
+            hasChanges = true
         }
         
         if hasChanges {

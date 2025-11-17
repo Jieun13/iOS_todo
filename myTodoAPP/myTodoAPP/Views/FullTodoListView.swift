@@ -9,16 +9,15 @@ import SwiftUI
 
 struct FullTodoListView: View {
     @ObservedObject var todoStore: TodoStore
+    @ObservedObject var timeSettingsStore: TimeSettingsStore
     @Environment(\.dismiss) var dismiss
     @State private var selectedCategory: TimeCategory? = nil
     
     var filteredTodos: [TodoItem] {
-        let today = Calendar.current.startOfDay(for: Date())
-        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today) ?? Date()
+        let (startDate, endDate) = MainViewHelper.getCurrentTimeRange(timeSettings: timeSettingsStore.settings)
         
         var todos = todoStore.todos.filter { todo in
-            let todoDate = Calendar.current.startOfDay(for: todo.createdAt)
-            return todoDate >= today && todoDate < tomorrow
+            return todo.createdAt >= startDate && todo.createdAt < endDate
         }
         
         if let category = selectedCategory {

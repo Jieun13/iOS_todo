@@ -82,6 +82,11 @@ struct TodoRowView: View {
                             .cornerRadius(4)
                     }
                     
+                    // 시간 정보 표시 (모든 항목에 대해 표시)
+                    Text(formatTime(todo.createdAt))
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    
                     Text(todo.type.rawValue)
                         .font(.caption2)
                         .foregroundColor(.secondary)
@@ -115,6 +120,8 @@ struct TodoRowView: View {
         }
         .sheet(isPresented: $showingDetail) {
             TodoDetailView(todo: todo, todoStore: todoStore)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
         }
     }
     
@@ -138,6 +145,14 @@ struct TodoRowView: View {
         }
         return false
     }
+    
+    private func formatTime(_ date: Date) -> String {
+        let timeFormatter = DateFormatter()
+        timeFormatter.locale = Locale(identifier: "ko_KR")
+        timeFormatter.dateFormat = "a h:mm"
+        return timeFormatter.string(from: date)
+    }
+    
 }
 
 #Preview {

@@ -80,6 +80,29 @@ struct SettingsView: View {
     private func refreshSync() {
         isRefreshing = true
         Task {
+            await MainActor.run {
+                // 먼저 정리 작업 수행
+                todoStore.cleanupOldTodos(timeSettings: timeSettingsStore.settings)
+                
+                // 현재 시간 범위 계산
+                let (startDate, endDate) = MainViewHelper.getCurrentTimeRange(timeSettings: timeSettingsStore.settings)
+                
+                // 시간 범위 밖의 모든 할 일 필터링 (동기화된 항목 제외 - 이미 syncCalendarEvents/syncReminders에서 처리됨)
+                let todosToRemove = todoStore.todos.filter { todo in
+                    // 동기화된 항목은 제외 (캘린더/미리알림에서 가져온 것들은 이미 처리됨)
+                    let isSynced = todo.calendarEventIdentifier != nil || todo.reminderIdentifier != nil
+                    if isSynced {
+                        return false
+                    }
+                    // 앱에서 직접 생성한 항목 중 시간 범위 밖인 것들 제거
+                    return todo.createdAt < startDate || todo.createdAt >= endDate
+                }
+                
+                for todo in todosToRemove {
+                    todoStore.deleteTodo(todo)
+                }
+            }
+            
             calendarSyncService.checkAuthorizationStatus()
             if calendarSyncService.isAuthorized {
                 calendarSyncService.syncCalendarEvents(to: todoStore, timeSettings: timeSettingsStore.settings)

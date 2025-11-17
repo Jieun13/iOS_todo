@@ -16,7 +16,7 @@ struct MainView: View {
     @State private var showingCalendarPermission = false
     @State private var showingFullTodoList = false
     @State private var todoFilterType: TodoFilterType = .mustDo
-    @State private var allTodosExpansionState: AllTodosExpansionState = .medium
+    @State private var allTodosExpansionState: AllTodosExpansionState = .collapsed
     
     init() {
         let settings = TimeSettings.defaultSettings
@@ -36,6 +36,7 @@ struct MainView: View {
                     CurrentTimeCategoryView(
                         todoStore: todoStore,
                         currentTimeCategory: $currentTimeCategory,
+                        timeSettings: timeSettingsStore.settings,
                         topHeight: topHeight
                     )
                     
@@ -44,6 +45,7 @@ struct MainView: View {
                     // 하단 - 전체 할 일 리스트
                     AllTodosView(
                         todoStore: todoStore,
+                        timeSettingsStore: timeSettingsStore,
                         todoFilterType: $todoFilterType,
                         allTodosExpansionState: $allTodosExpansionState,
                         currentTimeCategory: $currentTimeCategory,
@@ -69,10 +71,10 @@ struct MainView: View {
                 AddTodoView(todoStore: todoStore, initialTimeCategory: currentTimeCategory)
             }
             .sheet(isPresented: $showingFullTodoList) {
-                FullTodoListView(todoStore: todoStore)
+                FullTodoListView(todoStore: todoStore, timeSettingsStore: timeSettingsStore)
             }
             .onAppear {
-                todoStore.cleanupOldTodos()
+                todoStore.cleanupOldTodos(timeSettings: timeSettingsStore.settings)
                 updateCurrentTimeCategory()
                 syncWithCalendar()
             }
@@ -93,7 +95,7 @@ struct MainView: View {
                 Text("캘린더와 미리알림을 동기화하려면 권한이 필요합니다.\n\n설정 앱에서:\n1. '개인정보 보호 및 보안' 선택\n2. '캘린더' 선택 → 'myTodoAPP' 찾아서 허용\n3. '미리알림' 선택 → 'myTodoAPP' 찾아서 허용\n\n권한 허용 후 앱으로 돌아오면 자동으로 동기화됩니다.")
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-                todoStore.cleanupOldTodos()
+                todoStore.cleanupOldTodos(timeSettings: timeSettingsStore.settings)
                 calendarSyncService.checkAuthorizationStatus()
                 if calendarSyncService.isAuthorized {
                     syncWithCalendar()

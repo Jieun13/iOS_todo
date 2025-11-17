@@ -44,6 +44,7 @@ struct TodoItem: Identifiable, Codable {
     var createdAt: Date
     var completedAt: Date?
     var reminderIdentifier: String? // 미리알림과의 연결을 위한 식별자
+    var calendarEventIdentifier: String? // 캘린더 이벤트와의 연결을 위한 식별자
     
     // 하위 호환성을 위한 computed property
     var isCompleted: Bool {
@@ -51,7 +52,7 @@ struct TodoItem: Identifiable, Codable {
         set { status = newValue ? .completed : .notStarted }
     }
     
-    init(id: UUID = UUID(), title: String, memo: String? = nil, type: TodoType, timeCategory: TimeCategory? = nil, status: TodoStatus = .notStarted, createdAt: Date = Date(), completedAt: Date? = nil, reminderIdentifier: String? = nil) {
+    init(id: UUID = UUID(), title: String, memo: String? = nil, type: TodoType, timeCategory: TimeCategory? = nil, status: TodoStatus = .notStarted, createdAt: Date = Date(), completedAt: Date? = nil, reminderIdentifier: String? = nil, calendarEventIdentifier: String? = nil) {
         self.id = id
         self.title = title
         self.memo = memo
@@ -61,6 +62,7 @@ struct TodoItem: Identifiable, Codable {
         self.createdAt = createdAt
         self.completedAt = completedAt
         self.reminderIdentifier = reminderIdentifier
+        self.calendarEventIdentifier = calendarEventIdentifier
     }
 }
 

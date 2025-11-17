@@ -11,11 +11,18 @@ struct TodoDetailView: View {
     @Environment(\.dismiss) var dismiss
     let todo: TodoItem
     @ObservedObject var todoStore: TodoStore
+    @StateObject private var calendarSyncService = CalendarSyncService()
+    @StateObject private var timeSettingsStore = TimeSettingsStore()
     
     @State private var title: String
     @State private var memo: String
     @State private var selectedType: TodoType
     @State private var selectedTimeCategory: TimeCategory?
+    @FocusState private var focusedField: Field?
+    
+    enum Field {
+        case title, memo
+    }
     
     init(todo: TodoItem, todoStore: TodoStore) {
         self.todo = todo
@@ -27,13 +34,23 @@ struct TodoDetailView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section(header: Text("할 일 정보")) {
                     TextField("제목", text: $title)
+                        .textInputAutocapitalization(.sentences)
+                        .autocorrectionDisabled(false)
+                        .focused($focusedField, equals: .title)
+                        .submitLabel(.next)
+                        .onSubmit {
+                            focusedField = .memo
+                        }
                     
                     TextField("메모 (선택사항)", text: $memo, axis: .vertical)
                         .lineLimit(3...6)
+                        .textInputAutocapitalization(.sentences)
+                        .autocorrectionDisabled(false)
+                        .focused($focusedField, equals: .memo)
                 }
                 
                 Section(header: Text("분류")) {
@@ -81,11 +98,31 @@ struct TodoDetailView: View {
     }
     
     private func saveChanges() {
-        var updatedTodo = todo
+        // todoStore에서 최신 todo를 가져와서 업데이트
+        guard let currentTodo = todoStore.todos.first(where: { $0.id == todo.id }) else {
+            dismiss()
+            return
+        }
+        
+        var updatedTodo = currentTodo
         updatedTodo.title = title
         updatedTodo.memo = memo.isEmpty ? nil : memo
         updatedTodo.type = selectedType
         updatedTodo.timeCategory = selectedTimeCategory
+        
+        // 미리알림 업데이트 또는 생성
+        if calendarSyncService.isAuthorized {
+            if let reminderIdentifier = updatedTodo.reminderIdentifier {
+                // 기존 미리알림이 있으면 업데이트
+                calendarSyncService.updateReminder(for: updatedTodo, timeSettings: timeSettingsStore.settings)
+            } else {
+                // 미리알림이 없으면 새로 생성
+                if let newReminderIdentifier = calendarSyncService.createReminder(for: updatedTodo, timeSettings: timeSettingsStore.settings) {
+                    updatedTodo.reminderIdentifier = newReminderIdentifier
+                }
+            }
+        }
+        
         todoStore.updateTodo(updatedTodo)
         dismiss()
     }
