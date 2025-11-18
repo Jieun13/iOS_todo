@@ -35,6 +35,14 @@ class TodoStore: ObservableObject {
         saveTodos()
     }
     
+    func deleteTodoWithReminder(_ todo: TodoItem, calendarSyncService: CalendarSyncService) {
+        // 미리알림이 있으면 삭제
+        if todo.reminderIdentifier != nil {
+            calendarSyncService.deleteReminder(for: todo)
+        }
+        deleteTodo(todo)
+    }
+    
     func toggleStatus(_ todo: TodoItem) {
         if let index = todos.firstIndex(where: { $0.id == todo.id }) {
             var updatedTodo = todos[index]
@@ -59,13 +67,46 @@ class TodoStore: ObservableObject {
         toggleStatus(todo)
     }
     
-    func moveTodoToNextTimeCategory(_ todo: TodoItem) {
+    func moveTodoToNextTimeCategory(_ todo: TodoItem, calendarSyncService: CalendarSyncService? = nil) {
         guard let currentCategory = todo.timeCategory else { return }
         let categories: [TimeCategory] = [.morning, .daytime, .evening, .night]
         if let currentIndex = categories.firstIndex(of: currentCategory),
            currentIndex < categories.count - 1 {
             var updatedTodo = todo
-            updatedTodo.timeCategory = categories[currentIndex + 1]
+            let newCategory = categories[currentIndex + 1]
+            
+            // startTime이 있고 미리알림에서 가져온 경우 시간 제거
+            if updatedTodo.startTime != nil && updatedTodo.reminderIdentifier != nil {
+                updatedTodo.startTime = nil
+                // 미리알림에서도 시간 제거
+                if let calendarSyncService = calendarSyncService {
+                    calendarSyncService.removeReminderTime(for: updatedTodo)
+                }
+            }
+            
+            updatedTodo.timeCategory = newCategory
+            updateTodo(updatedTodo)
+        }
+    }
+    
+    func moveTodoToPreviousTimeCategory(_ todo: TodoItem, calendarSyncService: CalendarSyncService? = nil) {
+        guard let currentCategory = todo.timeCategory else { return }
+        let categories: [TimeCategory] = [.morning, .daytime, .evening, .night]
+        if let currentIndex = categories.firstIndex(of: currentCategory),
+           currentIndex > 0 {
+            var updatedTodo = todo
+            let newCategory = categories[currentIndex - 1]
+            
+            // startTime이 있고 미리알림에서 가져온 경우 시간 제거
+            if updatedTodo.startTime != nil && updatedTodo.reminderIdentifier != nil {
+                updatedTodo.startTime = nil
+                // 미리알림에서도 시간 제거
+                if let calendarSyncService = calendarSyncService {
+                    calendarSyncService.removeReminderTime(for: updatedTodo)
+                }
+            }
+            
+            updatedTodo.timeCategory = newCategory
             updateTodo(updatedTodo)
         }
     }
@@ -82,18 +123,8 @@ class TodoStore: ObservableObject {
         
         sortedTodos.move(fromOffsets: source, toOffset: destination)
         
-        // 순서를 저장하기 위해 order 속성을 사용하거나, createdAt을 조정
-        // 여기서는 간단하게 createdAt을 조정하는 방식 사용
-        for (index, todo) in sortedTodos.enumerated() {
-            if let originalIndex = todos.firstIndex(where: { $0.id == todo.id }) {
-                var updatedTodo = todos[originalIndex]
-                // 순서를 반영하기 위해 createdAt을 미세 조정
-                let baseDate = todo.createdAt
-                let adjustedDate = Calendar.current.date(byAdding: .second, value: index, to: baseDate) ?? baseDate
-                updatedTodo.createdAt = adjustedDate
-                todos[originalIndex] = updatedTodo
-            }
-        }
+        // 순서는 sortTodos에서 처리되므로 별도 조정 불필요
+        // startTime은 할 일 시작 시간이므로 순서 조정에 사용하지 않음
         saveTodos()
     }
     
@@ -112,22 +143,18 @@ class TodoStore: ObservableObject {
                 return todo1.type == .mustDo
             }
             
-            // 3. 캘린더/미리알림에서 가져온 항목은 시간 순으로 정렬
-            let hasTime1 = todo1.reminderIdentifier != nil || todo1.calendarEventIdentifier != nil
-            let hasTime2 = todo2.reminderIdentifier != nil || todo2.calendarEventIdentifier != nil
-            
-            if hasTime1 && hasTime2 {
-                // 둘 다 시간 정보가 있으면 시간 순으로 정렬
-                return todo1.createdAt < todo2.createdAt
-            } else if hasTime1 {
+            // 3. startTime이 있는 항목은 시간 순으로 정렬
+            if let time1 = todo1.startTime, let time2 = todo2.startTime {
+                return time1 < time2
+            } else if todo1.startTime != nil {
                 // todo1만 시간 정보가 있으면 위로
                 return true
-            } else if hasTime2 {
+            } else if todo2.startTime != nil {
                 // todo2만 시간 정보가 있으면 위로
                 return false
             } else {
-                // 둘 다 시간 정보가 없으면 최근 추가한 것이 아래로
-                return todo1.createdAt > todo2.createdAt
+                // 둘 다 시간 정보가 없으면 ID 순서로 정렬 (안정적인 정렬)
+                return todo1.id.uuidString < todo2.id.uuidString
             }
         }
     }
@@ -198,8 +225,15 @@ class TodoStore: ObservableObject {
         var hasChanges = false
         
         // 오늘 범위(오늘 아침 시작 ~ 내일 아침 시작) 이전의 할 일 필터링 (정리 대상)
+        // startTime이 있는 경우에만 시간 범위 확인, 없으면 앱에서 생성한 항목이므로 정리 대상에서 제외
         let todosToProcess = todos.filter { todo in
-            todo.createdAt < tomorrowMorningStart
+            // 동기화된 항목만 시간 범위로 필터링
+            let isSynced = todo.calendarEventIdentifier != nil || todo.reminderIdentifier != nil
+            if isSynced, let startTime = todo.startTime {
+                return startTime < tomorrowMorningStart
+            }
+            // 앱에서 생성한 항목은 정리하지 않음 (사용자가 직접 관리)
+            return false
         }
         
         for todo in todosToProcess {
@@ -213,7 +247,7 @@ class TodoStore: ObservableObject {
                     var updatedTodo = todos[index]
                     updatedTodo.type = .mustDo
                     updatedTodo.timeCategory = .morning
-                    updatedTodo.createdAt = dayAfterTomorrowMorningStart
+                    updatedTodo.startTime = dayAfterTomorrowMorningStart
                     todos[index] = updatedTodo
                     hasChanges = true
                 }
@@ -224,8 +258,9 @@ class TodoStore: ObservableObject {
         // 현재 범위: 내일 아침 시작 ~ 다음날 아침 시작
         let syncedTodosOutsideRange = todos.filter { todo in
             let isSynced = todo.calendarEventIdentifier != nil || todo.reminderIdentifier != nil
-            let isInRange = todo.createdAt >= tomorrowMorningStart && todo.createdAt < dayAfterTomorrowMorningStart
-            return isSynced && !isInRange
+            guard isSynced, let startTime = todo.startTime else { return false }
+            let isInRange = startTime >= tomorrowMorningStart && startTime < dayAfterTomorrowMorningStart
+            return !isInRange
         }
         
         for todo in syncedTodosOutsideRange {

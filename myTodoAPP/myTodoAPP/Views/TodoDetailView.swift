@@ -72,7 +72,7 @@ struct TodoDetailView: View {
                 
                 Section {
                     Button(role: .destructive) {
-                        todoStore.deleteTodo(todo)
+                        todoStore.deleteTodoWithReminder(todo, calendarSyncService: calendarSyncService)
                         dismiss()
                     } label: {
                         Text("삭제")
@@ -113,8 +113,20 @@ struct TodoDetailView: View {
         // 미리알림 업데이트 또는 생성
         if calendarSyncService.isAuthorized {
             if let reminderIdentifier = updatedTodo.reminderIdentifier {
-                // 기존 미리알림이 있으면 업데이트
-                calendarSyncService.updateReminder(for: updatedTodo, timeSettings: timeSettingsStore.settings)
+                // 앱에서 생성한 할 일(startTime == nil)은 시간대 변경 시 미리알림 업데이트 불필요
+                // 제목이나 메모가 변경된 경우에만 업데이트
+                let titleChanged = currentTodo.title != updatedTodo.title
+                let memoChanged = currentTodo.memo != updatedTodo.memo
+                
+                if updatedTodo.startTime == nil {
+                    // 앱에서 생성한 할 일: 제목/메모 변경 시에만 업데이트
+                    if titleChanged || memoChanged {
+                        calendarSyncService.updateReminder(for: updatedTodo, timeSettings: timeSettingsStore.settings)
+                    }
+                } else {
+                    // 캘린더/미리알림에서 가져온 할 일: 항상 업데이트
+                    calendarSyncService.updateReminder(for: updatedTodo, timeSettings: timeSettingsStore.settings)
+                }
             } else {
                 // 미리알림이 없으면 새로 생성
                 if let newReminderIdentifier = calendarSyncService.createReminder(for: updatedTodo, timeSettings: timeSettingsStore.settings) {

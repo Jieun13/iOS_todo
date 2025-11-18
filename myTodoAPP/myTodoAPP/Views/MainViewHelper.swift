@@ -65,7 +65,13 @@ struct MainViewHelper {
         let (startDate, endDate) = getCurrentTimeRange(timeSettings: timeSettings)
         
         let todayTodos = todoStore.todos.filter { todo in
-            return todo.createdAt >= startDate && todo.createdAt < endDate
+            // startTime이 있으면 시간 범위로 필터링, 없으면 앱에서 생성한 항목이므로 포함
+            if let startTime = todo.startTime {
+                return startTime >= startDate && startTime < endDate
+            } else {
+                // 앱에서 생성한 항목은 항상 포함
+                return true
+            }
         }
         
         return todayTodos
@@ -75,7 +81,14 @@ struct MainViewHelper {
         let (startDate, endDate) = getCurrentTimeRange(timeSettings: timeSettings)
         
         let todayTodos = todoStore.todos.filter { todo in
-            return todo.createdAt >= startDate && todo.createdAt < endDate && todo.timeCategory == category
+            let timeInRange: Bool
+            if let startTime = todo.startTime {
+                timeInRange = startTime >= startDate && startTime < endDate
+            } else {
+                // 앱에서 생성한 항목은 항상 포함
+                timeInRange = true
+            }
+            return timeInRange && todo.timeCategory == category
         }
         
         return todoStore.sortTodos(todayTodos)
@@ -85,7 +98,14 @@ struct MainViewHelper {
         let (startDate, endDate) = getCurrentTimeRange(timeSettings: timeSettings)
         
         let todayTodos = todoStore.todos.filter { todo in
-            return todo.createdAt >= startDate && todo.createdAt < endDate && todo.type == type
+            let timeInRange: Bool
+            if let startTime = todo.startTime {
+                timeInRange = startTime >= startDate && startTime < endDate
+            } else {
+                // 앱에서 생성한 항목은 항상 포함
+                timeInRange = true
+            }
+            return timeInRange && todo.type == type
         }
         
         return todoStore.sortTodos(todayTodos)

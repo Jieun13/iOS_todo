@@ -96,10 +96,7 @@ struct MainView: View {
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                 todoStore.cleanupOldTodos(timeSettings: timeSettingsStore.settings)
-                calendarSyncService.checkAuthorizationStatus()
-                if calendarSyncService.isAuthorized {
-                    syncWithCalendar()
-                }
+                syncWithCalendar()
             }
         }
     }

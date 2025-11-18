@@ -90,12 +90,12 @@ struct SettingsView: View {
                 // 시간 범위 밖의 모든 할 일 필터링 (동기화된 항목 제외 - 이미 syncCalendarEvents/syncReminders에서 처리됨)
                 let todosToRemove = todoStore.todos.filter { todo in
                     // 동기화된 항목은 제외 (캘린더/미리알림에서 가져온 것들은 이미 처리됨)
-                    let isSynced = todo.calendarEventIdentifier != nil || todo.reminderIdentifier != nil
+                    let isSynced = todo.calendarEventIdentifier != nil || (todo.reminderIdentifier != nil && todo.startTime != nil)
                     if isSynced {
                         return false
                     }
-                    // 앱에서 직접 생성한 항목 중 시간 범위 밖인 것들 제거
-                    return todo.createdAt < startDate || todo.createdAt >= endDate
+                    // 앱에서 직접 생성한 항목은 제거하지 않음 (사용자가 직접 관리)
+                    return false
                 }
                 
                 for todo in todosToRemove {

@@ -17,7 +17,14 @@ struct FullTodoListView: View {
         let (startDate, endDate) = MainViewHelper.getCurrentTimeRange(timeSettings: timeSettingsStore.settings)
         
         var todos = todoStore.todos.filter { todo in
-            return todo.createdAt >= startDate && todo.createdAt < endDate
+            let timeInRange: Bool
+            if let startTime = todo.startTime {
+                timeInRange = startTime >= startDate && startTime < endDate
+            } else {
+                // 앱에서 생성한 항목은 항상 포함
+                timeInRange = true
+            }
+            return timeInRange
         }
         
         if let category = selectedCategory {
