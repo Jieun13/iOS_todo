@@ -104,8 +104,15 @@ class TimeSettingsStore: ObservableObject {
     private let settingsKey = "timeSettings"
     
     init() {
-        if let data = UserDefaults.standard.data(forKey: settingsKey),
+        // App Group에서 먼저 시도
+        let appGroupIdentifier = "group.com.jieun.Jiny-TODO"
+        if let sharedDefaults = UserDefaults(suiteName: appGroupIdentifier),
+           let data = sharedDefaults.data(forKey: settingsKey),
            let decoded = try? JSONDecoder().decode(TimeSettings.self, from: data) {
+            self.settings = decoded
+        } else if let data = UserDefaults.standard.data(forKey: settingsKey),
+                  let decoded = try? JSONDecoder().decode(TimeSettings.self, from: data) {
+            // 하위 호환성: standard에서 로드
             self.settings = decoded
         } else {
             self.settings = TimeSettings.defaultSettings
@@ -114,8 +121,15 @@ class TimeSettingsStore: ObservableObject {
     
     func save() {
         if let encoded = try? JSONEncoder().encode(settings) {
+            // App Group을 사용하여 위젯과 데이터 공유
+            let appGroupIdentifier = "group.com.jieun.Jiny-TODO"
+            if let sharedDefaults = UserDefaults(suiteName: appGroupIdentifier) {
+                sharedDefaults.set(encoded, forKey: settingsKey)
+            }
+            // 하위 호환성을 위해 standard에도 저장
             UserDefaults.standard.set(encoded, forKey: settingsKey)
         }
     }
 }
+
 

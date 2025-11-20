@@ -28,13 +28,14 @@ struct TodoRowView: View {
                 Button(action: {
                     let previousStatus = todo.status
                     todoStore.toggleStatus(todo)
-                    // 완료 상태가 되면 미리알림도 완료 처리
-                    // toggleStatus는 진행중 → 완료로 전환하므로, previousStatus가 .inProgress면 완료로 전환됨
-                    if previousStatus == .inProgress {
-                        // 진행중에서 완료로 전환된 경우 - 업데이트된 todo를 가져와서 미리알림 완료 처리
-                        if let updatedTodo = todoStore.todos.first(where: { $0.id == todo.id }),
-                           updatedTodo.status == .completed {
+                    // 상태 변경에 따라 미리알림도 업데이트
+                    if let updatedTodo = todoStore.todos.first(where: { $0.id == todo.id }) {
+                        if updatedTodo.status == .completed && previousStatus != .completed {
+                            // 완료 상태로 전환된 경우
                             calendarSyncService.completeReminder(for: updatedTodo)
+                        } else if updatedTodo.status != .completed && previousStatus == .completed {
+                            // 완료 상태에서 미완료로 전환된 경우
+                            calendarSyncService.incompleteReminder(for: updatedTodo)
                         }
                     }
                 }) {

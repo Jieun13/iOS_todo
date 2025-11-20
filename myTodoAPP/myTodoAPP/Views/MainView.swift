@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import WidgetKit
 
 struct MainView: View {
     @StateObject private var todoStore = TodoStore()
@@ -77,12 +78,17 @@ struct MainView: View {
                 todoStore.cleanupOldTodos(timeSettings: timeSettingsStore.settings)
                 updateCurrentTimeCategory()
                 syncWithCalendar()
+                reloadWidgets()
             }
             .onChange(of: timeSettingsStore.settings) {
                 updateCurrentTimeCategory()
             }
             .onChange(of: calendarSyncService.hasFullAccess) {
                 syncWithCalendar()
+            }
+            .onChange(of: todoStore.todos) { _ in
+                // 할 일이 변경될 때마다 위젯 새로고침
+                reloadWidgets()
             }
             .alert("캘린더 접근 권한", isPresented: $showingCalendarPermission) {
                 Button("설정으로 이동") {
@@ -97,6 +103,7 @@ struct MainView: View {
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                 todoStore.cleanupOldTodos(timeSettings: timeSettingsStore.settings)
                 syncWithCalendar()
+                reloadWidgets()
             }
         }
     }
@@ -125,6 +132,11 @@ struct MainView: View {
                 calendarSyncService.syncReminders(to: todoStore, timeSettings: timeSettingsStore.settings)
             }
         }
+    }
+    
+    private func reloadWidgets() {
+        // 위젯 새로고침 (할 일 개수 업데이트)
+        WidgetCenter.shared.reloadTimelines(ofKind: "TodoWidget")
     }
 }
 

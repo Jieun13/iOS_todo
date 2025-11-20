@@ -177,14 +177,26 @@ class TodoStore: ObservableObject {
     
     func saveTodos() {
         if let encoded = try? JSONEncoder().encode(todos) {
+            // App Group을 사용하여 위젯과 데이터 공유
+            let appGroupIdentifier = "group.com.jieun.Jiny-TODO"
+            if let sharedDefaults = UserDefaults(suiteName: appGroupIdentifier) {
+                sharedDefaults.set(encoded, forKey: todosKey)
+            }
+            // 하위 호환성을 위해 standard에도 저장
             UserDefaults.standard.set(encoded, forKey: todosKey)
         }
     }
     
     private func loadTodos() {
-        if let data = UserDefaults.standard.data(forKey: todosKey),
+        // App Group에서 먼저 시도
+        let appGroupIdentifier = "group.com.jieun.Jiny-TODO"
+        if let sharedDefaults = UserDefaults(suiteName: appGroupIdentifier),
+           let data = sharedDefaults.data(forKey: todosKey),
            let decoded = try? JSONDecoder().decode([TodoItem].self, from: data) {
-            // 하위 호환성: 기존 데이터에 status가 없으면 isCompleted로 변환
+            todos = decoded
+        } else if let data = UserDefaults.standard.data(forKey: todosKey),
+                  let decoded = try? JSONDecoder().decode([TodoItem].self, from: data) {
+            // 하위 호환성: standard에서 로드
             todos = decoded
         }
     }
@@ -225,14 +237,24 @@ class TodoStore: ObservableObject {
         var hasChanges = false
         
         // 오늘 범위(오늘 아침 시작 ~ 내일 아침 시작) 이전의 할 일 필터링 (정리 대상)
-        // startTime이 있는 경우에만 시간 범위 확인, 없으면 앱에서 생성한 항목이므로 정리 대상에서 제외
         let todosToProcess = todos.filter { todo in
-            // 동기화된 항목만 시간 범위로 필터링
             let isSynced = todo.calendarEventIdentifier != nil || todo.reminderIdentifier != nil
+            
+            // 동기화된 항목: startTime으로 시간 범위 확인
             if isSynced, let startTime = todo.startTime {
                 return startTime < tomorrowMorningStart
             }
-            // 앱에서 생성한 항목은 정리하지 않음 (사용자가 직접 관리)
+            
+            // 앱에서 생성한 항목: startTime이 있으면 시간 범위로 확인, 없으면 모두 포함
+            if !isSynced {
+                if let startTime = todo.startTime {
+                    return startTime < tomorrowMorningStart
+                } else {
+                    // startTime이 없는 앱 생성 항목은 모두 정리 대상
+                    return true
+                }
+            }
+            
             return false
         }
         

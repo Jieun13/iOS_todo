@@ -6,19 +6,98 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		306114F72ECF717500B35D0C /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 306114F62ECF717500B35D0C /* WidgetKit.framework */; };
+		306114F92ECF717500B35D0C /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 306114F82ECF717500B35D0C /* SwiftUI.framework */; };
+		3061150A2ECF717700B35D0C /* myTodoWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 306114F42ECF717500B35D0C /* myTodoWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		306115082ECF717700B35D0C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 30C278D72ECA46610090541E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 306114F32ECF717500B35D0C;
+			remoteInfo = myTodoWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3061150F2ECF717700B35D0C /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				3061150A2ECF717700B35D0C /* myTodoWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		3001FF862ECF80CC00E6401E /* myTodoWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = myTodoWidgetExtension.entitlements; sourceTree = "<group>"; };
+		306114F42ECF717500B35D0C /* myTodoWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = myTodoWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		306114F62ECF717500B35D0C /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		306114F82ECF717500B35D0C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		30C278DF2ECA46610090541E /* myTodoAPP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = myTodoAPP.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		3061150B2ECF717700B35D0C /* Exceptions for "myTodoWidget" folder in "myTodoWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 306114F32ECF717500B35D0C /* myTodoWidgetExtension */;
+		};
+		306115122ECF72F900B35D0C /* Exceptions for "myTodoAPP" folder in "myTodoWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/TimeSettings.swift,
+				Models/TodoItem.swift,
+				Models/TodoStore.swift,
+				Services/CalendarEventSync.swift,
+				Services/CalendarSyncService.swift,
+				Services/ReminderOperations.swift,
+				Services/ReminderSync.swift,
+				Services/TimeCategoryHelper.swift,
+				Views/MainViewHelper.swift,
+			);
+			target = 306114F32ECF717500B35D0C /* myTodoWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		306114FA2ECF717500B35D0C /* myTodoWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3061150B2ECF717700B35D0C /* Exceptions for "myTodoWidget" folder in "myTodoWidgetExtension" target */,
+			);
+			path = myTodoWidget;
+			sourceTree = "<group>";
+		};
 		30C278E12ECA46610090541E /* myTodoAPP */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				306115122ECF72F900B35D0C /* Exceptions for "myTodoAPP" folder in "myTodoWidgetExtension" target */,
+			);
 			path = myTodoAPP;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		306114F12ECF717500B35D0C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				306114F92ECF717500B35D0C /* SwiftUI.framework in Frameworks */,
+				306114F72ECF717500B35D0C /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		30C278DC2ECA46610090541E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -29,10 +108,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		306114F52ECF717500B35D0C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				306114F62ECF717500B35D0C /* WidgetKit.framework */,
+				306114F82ECF717500B35D0C /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		30C278D62ECA46610090541E = {
 			isa = PBXGroup;
 			children = (
+				3001FF862ECF80CC00E6401E /* myTodoWidgetExtension.entitlements */,
 				30C278E12ECA46610090541E /* myTodoAPP */,
+				306114FA2ECF717500B35D0C /* myTodoWidget */,
+				306114F52ECF717500B35D0C /* Frameworks */,
 				30C278E02ECA46610090541E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +132,7 @@
 			isa = PBXGroup;
 			children = (
 				30C278DF2ECA46610090541E /* myTodoAPP.app */,
+				306114F42ECF717500B35D0C /* myTodoWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,6 +140,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		306114F32ECF717500B35D0C /* myTodoWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3061150C2ECF717700B35D0C /* Build configuration list for PBXNativeTarget "myTodoWidgetExtension" */;
+			buildPhases = (
+				306114F02ECF717500B35D0C /* Sources */,
+				306114F12ECF717500B35D0C /* Frameworks */,
+				306114F22ECF717500B35D0C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				306114FA2ECF717500B35D0C /* myTodoWidget */,
+			);
+			name = myTodoWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = myTodoWidgetExtension;
+			productReference = 306114F42ECF717500B35D0C /* myTodoWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		30C278DE2ECA46610090541E /* myTodoAPP */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 30C278EA2ECA46620090541E /* Build configuration list for PBXNativeTarget "myTodoAPP" */;
@@ -55,10 +169,12 @@
 				30C278DB2ECA46610090541E /* Sources */,
 				30C278DC2ECA46610090541E /* Frameworks */,
 				30C278DD2ECA46610090541E /* Resources */,
+				3061150F2ECF717700B35D0C /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				306115092ECF717700B35D0C /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				30C278E12ECA46610090541E /* myTodoAPP */,
@@ -80,6 +196,9 @@
 				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
+					306114F32ECF717500B35D0C = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
 					30C278DE2ECA46610090541E = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
@@ -100,11 +219,19 @@
 			projectRoot = "";
 			targets = (
 				30C278DE2ECA46610090541E /* myTodoAPP */,
+				306114F32ECF717500B35D0C /* myTodoWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		306114F22ECF717500B35D0C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		30C278DD2ECA46610090541E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -115,6 +242,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		306114F02ECF717500B35D0C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		30C278DB2ECA46610090541E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -124,7 +258,77 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		306115092ECF717700B35D0C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 306114F32ECF717500B35D0C /* myTodoWidgetExtension */;
+			targetProxy = 306115082ECF717700B35D0C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		3061150D2ECF717700B35D0C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = myTodoWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 28L9J467NY;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = myTodoWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = myTodoWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.jieun.Jiny-TODO.myTodoWidget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3061150E2ECF717700B35D0C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = myTodoWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 28L9J467NY;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = myTodoWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = myTodoWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.jieun.Jiny-TODO.myTodoWidget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		30C278E82ECA46620090541E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -251,6 +455,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = myTodoAPP/myTodoAPP.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 28L9J467NY;
@@ -287,6 +492,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = myTodoAPP/myTodoAPP.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 28L9J467NY;
@@ -321,6 +527,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		3061150C2ECF717700B35D0C /* Build configuration list for PBXNativeTarget "myTodoWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3061150D2ECF717700B35D0C /* Debug */,
+				3061150E2ECF717700B35D0C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		30C278DA2ECA46610090541E /* Build configuration list for PBXProject "myTodoAPP" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

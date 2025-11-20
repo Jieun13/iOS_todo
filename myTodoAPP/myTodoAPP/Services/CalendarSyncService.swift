@@ -91,5 +91,10 @@ class CalendarSyncService: ObservableObject {
         guard hasFullAccess else { return }
         reminderOperations.completeReminder(for: todo)
     }
+    
+    func incompleteReminder(for todo: TodoItem) {
+        guard hasFullAccess else { return }
+        reminderOperations.incompleteReminder(for: todo)
+    }
 }
 
